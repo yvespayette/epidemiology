@@ -1,0 +1,1746 @@
+<HTML><HEAD>
+<TITLE>Calculateur en épidémiologie</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<META content="Microsoft FrontPage 12.0" name=GENERATOR>
+<script type=text/javascript>
+// Fonction pour donner l'heure
+function startTime()
+{
+var today=new Date()
+var h=today.getHours()
+var m=today.getMinutes()
+var s=today.getSeconds()
+// add a zero in front of numbers<10
+m=checkTime(m)
+s=checkTime(s)
+document.getElementById('txt').innerHTML=h+":"+m+":"+s
+t=setTimeout('startTime()',500)
+}
+
+function checkTime(i)
+{
+if (i<10) 
+  {i="0" + i}
+  return i
+}
+</script>
+<style type="text/css">
+            .style1
+            {
+                width: 41%;
+            }
+            .style5
+            {
+                width: 16%;
+            }
+            .style31
+            {
+                height: 30px;
+                width: 150px;
+            }
+        .style45
+    {
+        height: 16px;
+    }
+    .style46
+    {
+        width: 98px;
+        height: 16px;
+    }
+    .style47
+    {
+        width: 104px;
+    }
+    .style48
+    {
+        height: 16px;
+        width: 104px;
+    }
+    .style49
+    {
+        width: 98px;
+    }
+    .style50
+    {
+        width: 159px;
+    }
+    .style51
+    {
+        height: 16px;
+        width: 159px;
+    }
+        </style>
+</HEAD>
+<body bgColor=#ffcc99 onload=startTime()>
+<div align=center></div><!DOCTYPE HTML PUBLIC "">
+<div id=txt></div>
+<H2 style="LINE-HEIGHT: 100%">Calculateur en épidémiologie 
+</H2>
+<FORM name=form>
+<p style="LINE-HEIGHT: 100%">
+<SCRIPT type=text/javascript>
+
+
+// Fonction statistiques tirées de (fonctions de distribution) : http://home.ubalt.edu/ntsbarsh/Business-stat/otherapplets/pvalues.htm#rnorm
+// et de (fonction inverse de Z) :   http://www.ciphersbyritter.com/JAVASCRP/NORMCHIK.HTM#Normal
+
+// NORMAL
+function NormalP( x ) {
+   // Abramowitz & Stegun 26.2.19
+   var
+      d1 = 0.0498673470,
+      d2 = 0.0211410061,
+      d3 = 0.0032776263,
+      d4 = 0.0000380036,
+      d5 = 0.0000488906,
+      d6 = 0.0000053830;
+   var a = Math.abs(x);
+   var t = 1.0 + a*(d1+a*(d2+a*(d3+a*(d4+a*(d5+a*d6)))));
+   // to 16th power
+   t *= t;  t *= t;  t *= t;  t *= t;
+   t = 1.0 / (t+t);  // the MINUS 16th
+
+   if (x >= 0)  t = 1 - t;
+   return t;
+   }
+function InvNormalP( p ) {
+   // Odeh & Evans. 1974. AS 70. Applied Statistics. 23: 96-97
+   var
+      p0 = -0.322232431088,
+      pp1 = -1.0,
+      p2 = -0.342242088547,
+      p3 = -0.0204231210245,
+      p4 = -0.453642210148E-4,
+      q0 =  0.0993484626060,
+      q1 =  0.588581570495,
+      q2 =  0.531103462366,
+      q3 =  0.103537752850,
+      q4 =  0.38560700634E-2,
+      pp, y, xp;
+   // p: 0.0 .. 1.0 -> pp: 0.0 .. 0.5 .. 0.0
+   if (p < 0.5)  pp = p;  else  pp = 1 - p;
+
+   if (pp < 1E-12)
+      xp = 99;
+   else {
+      y = Math.sqrt(Math.log(1/(pp*pp)));
+      xp = y + ((((y * p4 + p3) * y + p2) * y + pp1) * y + p0) /
+               ((((y * q4 + q3) * y + q2) * y + q1) * y + q0);
+      }
+   if (p < 0.5)  return -xp;
+   else  return  xp;
+   }
+
+// FACTORIALS
+
+function Fact( x ) {
+   // x factorial
+   var  t=1;
+   while (x > 1)
+      t *= x--;
+   return t;
+   }
+
+// Fonction Log base 10
+function custLog(x,base) {
+	// Created 1997 by Brian Risk.  http://members.aol.com/brianrisk
+	return (Math.log(x))/(Math.log(base));
+}
+
+   
+// Fonction pour le test
+function disp_alert()
+{
+alert("Yves Payette, M.Sc. ")
+
+}
+
+// Fonction de format initial
+function format2(value, decimal)
+{
+wi = (value < 0) ? Math.ceil(value) : Math.floor(value)
+shift = Math.pow(10,decimal)
+wd = Math.round((Math.abs(value - wi)) * shift)
+if (wd == shift) {
+   wi = wi + ((value < 0) ? -1 : 1)
+   wd = 0
+   tring = "" } else tring = wd
+decim = Math.pow(10, (decimal-1))
+for (var i = 2; (wd < decim) && (decim >= 1); i++)
+        {
+        decim = Math.pow(10, (decimal - i))
+        tring = "0" + tring
+        }
+if (value < 0 && value > -1 && wi == 0)
+  return "-" + wi + "." + tring
+else
+  return wi + "." + tring
+}
+
+// Fonction de format refait par Y.P.
+function format(value, decimal)
+{
+var mat = 0
+var id = 10
+
+mat = Math.round(value*Math.pow(id,decimal))/Math.pow(id,decimal)
+
+return mat
+}
+// Fonction statistiques tirées de (fonctions de distribution) : http://home.ubalt.edu/ntsbarsh/Business-stat/otherapplets/pvalues.htm#rnorm
+// et de (fonction inverse de Z) :   http://www.ciphersbyritter.com/JAVASCRP/NORMCHIK.HTM#Normal
+
+<!-- hide this script tag's contents from old browsers
+	var Pi=Math.PI; var PiD2=Pi/2; var PiD4=Pi/4; var Pi2=2*Pi
+	var e=2.718281828459045235; var e10 = 1.105170918075647625
+	var Deg=180/Pi
+
+	function Norm(z) {
+		z=Math.abs(z)
+		var p=1+ z*(0.04986735+ z*(0.02114101+ z*(0.00327763+ z*(0.0000380036+ z*(0.0000488906+ z*0.000005383)))))
+		p=p*p; p=p*p; p=p*p
+		return 1/(p*p)
+		}
+	function ChiSq(x,n) {
+		if(n==1 & x>1000) {return 0}
+		if(x>1000 | n>1000) {
+			var q=ChiSq((x-n)*(x-n)/(2*n),1)/2
+			if(x>n) {return q} {return 1-q}
+			}
+		var p=Math.exp(-0.5*x); if((n%2)==1) { p=p*Math.sqrt(2*x/Pi) }
+		var k=n; while(k>=2) { p=p*x/k; k=k-2 }
+		var t=p; var a=n; while(t>0.0000000001*p) { a=a+2; t=t*x/a; p=p+t }
+		return 1-p
+		}
+	function StudT(t,n) {
+		t=Math.abs(t); var w=t/Math.sqrt(n); var th=Math.atan(w)
+		if(n==1) { return 1-th/PiD2 }
+		var sth=Math.sin(th); var cth=Math.cos(th)
+		if((n%2)==1)
+			{ return 1-(th+sth*cth*StatCom(cth*cth,2,n-3,-1))/PiD2 }
+			else
+			{ return 1-sth*StatCom(cth*cth,1,n-3,-1) }
+		}
+	function FishF(f,n1,n2) {
+		var x=n2/(n1*f+n2)
+		if((n1%2)==0) { return StatCom(1-x,n2,n1+n2-4,n2-2)*Math.pow(x,n2/2) }
+		if((n2%2)==0){ return 1-StatCom(x,n1,n1+n2-4,n1-2)*Math.pow(1-x,n1/2) }
+		var th=Math.atan(Math.sqrt(n1*f/n2)); var a=th/PiD2; var sth=Math.sin(th); var cth=Math.cos(th)
+		if(n2>1) { a=a+sth*cth*StatCom(cth*cth,2,n2-3,-1)/PiD2 }
+		if(n1==1) { return 1-a }
+		var c=4*StatCom(sth*sth,n2+1,n1+n2-4,n2-2)*sth*Math.pow(cth,n2)/Pi
+		if(n2==1) { return 1-a+c/2 }
+		var k=2; while(k<=(n2-1)/2) {c=c*k/(k-.5); k=k+1 }
+		return 1-a+c
+		}
+	function StatCom(q,i,j,b) {
+		var zz=1; var z=zz; var k=i; while(k<=j) { zz=zz*q*k/(k-b); z=z+zz; k=k+2 }
+		return z
+		}
+	function ANorm(p) { var v=0.5; var dv=0.5; var z=0
+		while(dv>1e-6) { z=1/v-1; dv=dv/2; if(Norm(z)>p) { v=v-dv } else { v=v+dv } }
+		return z
+		}
+	function AChiSq(p,n) { var v=0.5; var dv=0.5; var x=0
+		while(dv>1e-10) { x=1/v-1; dv=dv/2; if(ChiSq(x,n)>p) { v=v-dv } else { v=v+dv } }
+		return x
+		}
+	function AStudT(p,n) { var v=0.5; var dv=0.5; var t=0
+		while(dv>1e-6) { t=1/v-1; dv=dv/2; if(StudT(t,n)>p) { v=v-dv } else { v=v+dv } }
+		return t
+		}
+	function AFishF(p,n1,n2) { var v=0.5; var dv=0.5; var f=0
+		while(dv>1e-10) { f=1/v-1; dv=dv/2; if(FishF(f,n1,n2)>p) { v=v-dv } else { v=v+dv } }
+		return f
+		}
+
+	function CalcN(form) { 
+		var pn1 = Fmt(Norm(eval(form.z.value))) ;
+		if (pn1.indexOf("e") != -1) {
+				form.pn.value = "Almost Zero"; }
+			else {	
+				form.pn.value = pn1;
+				}
+			}
+	function CalcNr(form) { form.z.value=Fmt(ANorm(eval(form.pn.value))) }
+	function CalcT(form) { 
+		var pt1 = Fmt(StudT(eval(form.t.value),eval(form.nt.value))) ;
+		if (pt1.indexOf("e") != -1) {
+				form.pt.value = "Almost Zero"; }
+			else {	
+				form.pt.value = pt1;
+				}
+			}
+	function CalcTr(form) { form.t.value=Fmt(AStudT(eval(form.pt.value),eval(form.nt.value))) }
+	function CalcX(form) { 
+		var px1 = Fmt(ChiSq(eval(form.x.value),eval(form.nx.value))) ;
+		if (px1.indexOf("e") != -1) {
+				form.px.value = "Almost Zero"; }
+			else {	
+				form.px.value = px1;
+				}
+			}
+	
+	function CalcXr(form) { form.x.value=Fmt(AChiSq(eval(form.px.value),eval(form.nx.value))) }
+	function CalcF(form) { 
+		var pf1 = Fmt(FishF(eval(form.f.value),eval(form.n1.value),eval(form.n2.value)))
+		if (pf1.indexOf("e") != -1) {
+			form.pf.value = "Almost Zero"; }
+		else {	
+			form.pf.value = pf1;
+			}
+		}
+	function CalcFr(form) { 
+		form.f.value=Fmt(AFishF(eval(form.pf.value),eval(form.n1.value),eval(form.n2.value))) 
+		}
+	
+	function Fmt(x) { 
+		var v
+		if(x>=0) { v=''+(x+0.0005) } else { v=''+(x-0.0005) }
+		return v.substring(0,v.indexOf('.')+4)
+		}
+
+<!-- done hiding from old browsers -->
+//Fin des distributions statistiques et des formats
+
+// Fonction supplémentaire pour estimer l'inverse de Fisher avec des décimales, 07-2006
+// Refait par Yves Payette avec l'aide de John Pezullo, jcp12345@gmail.com
+
+function AFishcor(free,a,b) {
+
+var parta = Math.floor(a)
+var partb = Math.floor(b)
+var D2  = a - parta
+var D3  = b - partb
+var B8 = AFishF(free,parta,partb)
+var D8 = AFishF(free,parta,(partb+1))
+var B10 = AFishF(free,(parta+1),(partb))
+var D10 = AFishF(free,(parta+1),(partb+1))
+
+var moycar = (1/ Math.pow((1/Math.sqrt(B8))*(1-D2)*(1-D3) + (1/Math.sqrt(D8))*(1-D2)*(D3) + (1/Math.sqrt(B10))*(D2)*(1-D3) + (1/Math.sqrt(D10))*(D2)*(D3),2) );
+
+return moycar
+} 
+
+function zeroed()  {
+
+form.num1.value = ""
+form.denom1.value = ""
+form.p1.value = ""
+form.cv1.value= ""
+form.q1.value= "" 
+form.meth1.value= ""
+form.ici1.value= ""
+form.ics1.value= "" 
+form.ma1.value= ""
+form.c1.value=""
+form.power1.value=""
+
+form.num2.value = ""
+form.denom2.value = ""
+form.p2.value = ""
+form.cv2.value= ""
+form.q2.value= "" 
+form.meth2.value= ""
+form.ici2.value= ""
+form.ics2.value= "" 
+form.ma2.value= ""
+form.c2.value=""
+form.power2.value=""
+
+form.rr.value = ""
+form.rrici.value=""
+form.rrics.value=""
+form.od.value=""
+form.odici.value=""
+form.odics.value=""
+form.p1p2.value=""
+form.p1p2ici.value=""
+form.p1p2ics.value=""
+form.dd8.value=""
+form.dd9.value=""
+form.dd10.value=""
+form.dd11.value=""
+form.dd12.value=""
+form.dd13.value=""
+form.dd14.value=""
+form.dd15.value=""
+form.dd16.value=""
+form.dd17.value=""
+form.dd18.value=""
+form.dd19.value=""
+form.dd20.value=""
+form.dd21.value=""
+form.dd22.value=""
+form.rrpr.value=""
+form.rrq.value=""
+form.p1p2pr.value=""
+form.p1p2q.value=""
+form.p1p2p.value=""
+form.poptot1.value=""
+form.poptot2.value=""
+form.mep1.value=""
+form.mep2.value=""
+form.khi.value=""
+form.pKhi.value=""
+form.Exact.value=""
+form.YKhi.value=""
+form.phi.value=""
+form.r2.value=""
+form.yule.value=""
+form.logrc.value=""
+form.probrc.value=""
+}
+
+// Programme principal de la feuille de calcul
+// Fonction principale de calcul
+function calculate()
+{
+var alp = 1-(form.alpha.value/2)
+var alp2 = (form.alpha.value/2)
+var z_alpha = format(InvNormalP(alp),4)
+
+// Validation de P1 
+
+form.num1.value = format(parseFloat(form.num1.value),2)
+form.denom1.value = format(parseFloat(form.denom1.value),2)
+form.p1.value = parseFloat(form.p1.value)
+
+if ( (!parseFloat(form.num1.value)>0 || !parseFloat(form.denom1.value)>0 ) && parseFloat(form.p1.value)>0) {
+     if (!parseFloat(form.num1.value)>0 && parseFloat(form.denom1.value)>0) {
+   	    form.num1.value = Math.round(((parseFloat(form.p1.value))*(parseFloat(form.denom1.value))/100)) 
+	 } else {
+	 if (!parseFloat(form.denom1.value)>0 && parseFloat(form.num1.value)>0) { form.denom1.value = Math.round((100*(parseFloat(form.num1.value))/(parseFloat(form.p1.value)))) } 
+	 }
+	} 
+ 
+
+if ( (parseFloat(form.num1.value)>0) && (parseFloat(form.denom1.value)>0) && (parseFloat(form.denom1.value)>=parseFloat(form.num1.value)) ) 
+{  
+  					   				   
+// Calculs pour P1
+var num1 = parseFloat(form.num1.value)
+var denom1 = parseFloat(form.denom1.value)
+var p1 = num1/denom1
+
+form.p1.value = format((100*p1),2)
+var ma1= (z_alpha*Math.sqrt(p1*p1*(1-p1)/num1)) 
+var cv1 = ma1/z_alpha/p1
+form.cv1.value = format(100*cv1,2)
+
+//Fonction de l'intervalle de confiance: tiré du fichier Excel ESCC2003_region.xls de l'Institut de  la Statistique du Québec mais adapté au JavaScript par Yves Payette, INSPQ 2006 */ 
+//IC binomial adapté de :  Korn EL, Graubard BL. 1998. Confidence intervals for proportions with small expected number of positive counts estimated form survey data. Survey Methodology, 24(2):193-201 (Cahier de Méthodologie de Statistiques Canada).
+//*** Calcul de l'intervalle de confiance *****/
+
+
+if   (cv1>0.333 || denom1<11)    // Le dénominateur populationnel n'est pas disponible dans cet estimé ponctuel 
+   {	form.q1.value="Ne pas publier" 
+   		form.meth1.value="Aucune" 
+   		form.ici1.value = "--" 
+   		form.ics1.value = "--" 
+   		form.ma1.value = "--" 
+} else {
+
+var binomb = 0
+if ((cv1>0.165) && (cv1<=0.333)) { 
+	form.q1.value="Marginale" 
+		} else { 
+		form.q1.value="Acceptable"  }
+if  ((p1<0.05 || p1>0.95) && denom1>=10000)  { 
+	var binomb = 1  }
+if  (( (p1>=0.05 && p1<0.1) || (p1>0.90 && p1<=0.95) ) && denom1>=1400)  { 
+	var binomb = 1 }
+if  (( (p1>=0.1  && p1<0.2) || (p1>0.8  && p1<=0.9) )  && denom1>=600)  { 
+	var binomb = 1 }
+if  (( (p1>=0.2  && p1<0.3) || (p1>0.7  && p1<=0.8))   && denom1>=200)  { 
+	var binomb = 1 }
+if  (( (p1>=0.3  && p1<0.4) || (p1>0.6  && p1<=0.7))   && denom1>=80)  { 
+	var binomb = 1 }
+if  (( (p1>=0.4  && p1<0.5) || (p1>0.5  && p1<=0.6))   && denom1>=50)  { 
+	var binomb = 1 }
+if  (p1==0.5 && denom1>=30) { 
+	var binomb = 1 }
+	
+
+var p1 = num1/denom1   //p1 est réinitialisé...
+var num1 = parseFloat(form.num1.value)
+var denom1 = parseFloat(form.denom1.value)
+
+if (binomb == 1) {  form.meth1.value= "Normale" 
+				   form.ici1.value = format((100*(p1-ma1)),2) 
+				   form.ics1.value = format((100*(p1+ma1)),2) 
+				   form.ma1.value = format((100*ma1),2)  
+			       } 
+		       
+if (binomb == 0) 	{  var V1=2*denom1*p1  
+           		   var V2=2*(denom1-(denom1*p1)+1) 
+           		   var V3=2*(denom1*p1+1) 
+           		   var V4=2*(denom1-denom1*p1) 
+           		   var NUML=V1*AFishcor(alp,V1,V2) 
+           		   var DENL=(V2+NUML) 
+           		   var NUMU=V3*AFishcor(alp2,V3,V4) 
+           		   var DENU=(V4+NUMU) 
+           		   
+				      form.meth1.value="Binomiale"   
+		   		      form.ici1.value = format((100*(NUML/DENL)),2)  
+				      form.ics1.value = format((100*(NUMU/DENU)),2)   
+				      form.ma1.value = format((form.ics1.value - form.ici1.value)/2,2)+" (M)"  
+				 }
+} 	
+
+if   (cv1>0.333) // Estimation de la marge d'erreur si IC n'est pas publiable  - méthode Exact (binomial) est recommandé
+	 {  var V1=2*denom1*p1  
+     var V2=2*(denom1-(denom1*p1)+1) 
+     var V3=2*(denom1*p1+1) 
+     var V4=2*(denom1-denom1*p1) 
+     var NUML=V1*AFishcor(alp,V1,V2) 
+     var DENL=(V2+NUML) 
+     var NUMU=V3*AFishcor(alp2,V3,V4) 
+     var DENU=(V4+NUMU)
+	 form.ma1.value = format(((100*(NUMU/DENU)) - (100*(NUML/DENL)))/2,2)+" (E)" 
+}
+	
+if (cv1<= 5) {form.c1.value="A"}
+if ((cv1<= 10) && (form.cv1.value>5)) {form.c1.value="B"}
+if ((cv1<= 15) && (form.cv1.value>10)) {form.c1.value="B"}
+if ((cv1 <= 25) && (form.cv1.value>15)) {form.c1.value="D"}
+if (cv1>25) {form.c1.value="E"}
+
+form.power1.value = format((100*NormalP((p1/(Math.sqrt(p1*p1*(1-p1)/(p1*denom1))))-z_alpha)),2)
+} else {
+//alert("Erreur avec les nombres entrés de P1")
+form.num1.value=0
+form.denom1.value=0
+form.cv1.value=0
+form.ici1.value=0 
+form.ics1.value=0
+form.ma1.value=0
+form.p1.value=0
+form.power1.value=0
+}
+
+// Validation de P2 
+
+form.num2.value = format(parseFloat(form.num2.value),2)
+form.denom2.value = format(parseFloat(form.denom2.value),2)
+form.p2.value = parseFloat(form.p2.value)
+
+if ( (!parseFloat(form.num2.value)>0 || !parseFloat(form.denom2.value)>0 ) && parseFloat(form.p2.value)>0) {
+     if (!parseFloat(form.num2.value)>0 && parseFloat(form.denom2.value)>0) {
+   	    form.num2.value = Math.round(((parseFloat(form.p2.value))*(parseFloat(form.denom2.value))/100)) 
+	 } else {
+	 if (!parseFloat(form.denom2.value)>0 && parseFloat(form.num2.value)>0) { form.denom2.value = Math.round((100*(parseFloat(form.num2.value))/(parseFloat(form.p2.value)))) } 
+	 }
+	} 
+
+if ( (parseFloat(form.num2.value)>0) && (parseFloat(form.denom2.value)>0) && (parseFloat(form.denom2.value)>=parseFloat(form.num2.value)) ) 
+{  
+  					   				   
+// Calculs pour P2
+var num2 = parseFloat(form.num2.value)
+var denom2 = parseFloat(form.denom2.value)
+var p2 = num2/denom2
+
+form.p2.value = format((100*p2),2)
+var ma2= (z_alpha*Math.sqrt(p2*p2*(1-p2)/num2)) 
+var cv2 = ma2/z_alpha/p2
+form.cv2.value = format(100*cv2,2)
+
+//Fonction de l'intervalle de confiance: tiré du fichier Excel ESCC2003_region.xls de l'Institut de  la Statistique du Québec mais adapté au JavaScript par Yves Payette, INSPQ 2006 */ 
+//IC binomial adapté de :  Korn EL, Graubard BL. 1998. Confidence intervals for proportions with small expected number of positive counts estimated form survey data. Survey Methodology, 24(2):193-201 (Cahier de Méthodologie de Statistiques Canada).
+//*** Calcul de l'intervalle de confiance *****/
+
+
+if   (cv2>0.333 || denom2<11)   
+   {	form.q2.value="Ne pas publier" 
+   		form.meth2.value="Aucune" 
+   		form.ici2.value = "--" 
+   		form.ics2.value = "--" 
+   		form.ma2.value = "--" 
+} else {
+
+var binomb = 0
+if ((cv2>0.165) && (cv2<=0.333)) { 
+	form.q2.value="Marginale" 
+		} else { 
+		form.q2.value="Acceptable"  }
+if  ((p2<0.05 || p2>0.95) && denom2>=10000)  { 
+	var binomb = 1  }
+if  (( (p2>=0.05 && p2<0.1) || (p2>0.90 && p2<=0.95) ) && denom2>=1400)  { 
+	var binomb = 1 }
+if  (( (p2>=0.1  && p2<0.2) || (p2>0.8  && p2<=0.9) )  && denom2>=600)  { 
+	var binomb = 1 }
+if  (( (p2>=0.2  && p2<0.3) || (p2>0.7  && p2<=0.8))   && denom2>=200)  { 
+	var binomb = 1 }
+if  (( (p2>=0.3  && p2<0.4) || (p2>0.6  && p2<=0.7))   && denom2>=80)  { 
+	var binomb = 1 }
+if  (( (p2>=0.4  && p2<0.5) || (p2>0.5  && p2<=0.6))   && denom2>=50)  { 
+	var binomb = 1 }
+if  (p2==0.5 && denom2>=30) { 
+	var binomb = 1 }
+	
+
+var p2 = num2/denom2   //p2 est réinitialisé...
+var num2 = parseFloat(form.num2.value)
+var denom2 = parseFloat(form.denom2.value)
+
+if (binomb == 1) {  form.meth2.value= "Normale" 
+				   form.ici2.value = format((100*(p2-ma2)),2) 
+				   form.ics2.value = format((100*(p2+ma2)),2) 
+				   form.ma2.value = format((100*ma2),2)  
+			       } 
+			       
+if (binomb == 0) 	{  var V1=2*denom2*p2  
+           		   var V2=2*(denom2-(denom2*p2)+1) 
+           		   var V3=2*(denom2*p2+1) 
+           		   var V4=2*(denom2-denom2*p2) 
+           		   var NUML=V1*AFishcor(alp,V1,V2) 
+           		   var DENL=(V2+NUML) 
+           		   var NUMU=V3*AFishcor(alp2,V3,V4) 
+           		   var DENU=(V4+NUMU) 
+           		 
+				      form.meth2.value="Binomiale"   
+		   		      form.ici2.value = format((100*(NUML/DENL)),2)  
+				      form.ics2.value = format((100*(NUMU/DENU)),2)   
+				      form.ma2.value = format((form.ics2.value - form.ici2.value)/2,2)+" (M)"    
+				 }
+} 	
+
+if   (cv2>0.333) // Estimation de la marge d'erreur si IC n'est pas publiable  - méthode Exact (binomial) est recommandé
+	 {  var V1=2*denom2*p2  
+     var V2=2*(denom2-(denom2*p2)+1) 
+     var V3=2*(denom2*p2+1) 
+     var V4=2*(denom2-denom2*p2) 
+     var NUML=V1*AFishcor(alp,V1,V2) 
+     var DENL=(V2+NUML) 
+     var NUMU=V3*AFishcor(alp2,V3,V4) 
+     var DENU=(V4+NUMU)
+	 form.ma2.value = format(((100*(NUMU/DENU)) - (100*(NUML/DENL)))/2,2)+" (E)" 
+}
+	
+if (cv2<= 5) {form.c2.value="A"}
+if ((cv2<= 10) && (form.cv2.value>5)) {form.c2.value="B"}
+if ((cv2<= 15) && (form.cv2.value>10)) {form.c2.value="B"}
+if ((cv2 <= 25) && (form.cv2.value>15)) {form.c2.value="D"}
+if (cv2>25) {form.c2.value="E"}
+form.power2.value = format((100*NormalP((p2/(Math.sqrt(p2*p2*(1-p2)/(p2*denom2))))-z_alpha)),2)
+} else {
+//alert("Erreur avec les nombres entrés de P2")
+form.num2.value=0
+form.denom2.value=0
+form.cv2.value=0
+form.ici2.value=0 
+form.ics2.value=0
+form.ma2.value=0
+form.p2.value=0
+form.power2.value=0
+}
+
+
+// Calculs pour les valeurs RR et OR
+// voir:  www.healthstrategy.com/epiperl/EpiMaxSelector.htm
+
+if ((form.num1.value>0) && (form.denom1.value>0) && (form.num2.value>0) && (form.denom2.value>0)) { 
+var p1 = num1/denom1   //p1 est réinitialisé...
+var num1 = parseFloat(form.num1.value)
+var denom1 = parseFloat(form.denom1.value)
+var p2 = num2/denom2   //p2 est réinitialisé...
+var num2 = parseFloat(form.num2.value)
+var denom2 = parseFloat(form.denom2.value) 
+var num11=(form.denom1.value)-(form.num1.value)
+var num22=(form.denom2.value)-(form.num2.value)
+var odma = Math.sqrt(1/num1 + 1/num11 + 1/num2 + 1/num22)
+var rrma = Math.sqrt(((num11/num1)/denom1)+((num22/num2)/denom2))
+var ppma = z_alpha*(Math.sqrt((p1*(1-p1)/denom1)+(p2*(1-p2)/denom2)))
+var p1p2 = Math.abs(p1-p2)
+
+form.od.value = format(((num1*num22)/(num2*num11)),2)
+form.odici.value=format(Math.exp(Math.log((num1*num22)/(num2*num11))-z_alpha*odma),2)
+form.odics.value=format(Math.exp(Math.log((num1*num22)/(num2*num11))+z_alpha*odma),2)
+
+form.rr.value= format(((num1/denom1)/(num2/denom2)),2)
+form.rrici.value= format(Math.exp(Math.log(((num1/denom1)/(num2/denom2)))-z_alpha*rrma),2)
+form.rrics.value= format(Math.exp(Math.log(((num1/denom1)/(num2/denom2)))+z_alpha*rrma),2)
+
+form.p1p2.value= format(100*(Math.abs(p1-p2)),2)
+form.p1p2ici.value= format(100*(Math.abs(p1-p2)-ppma),2)
+form.p1p2ics.value= format(100*(Math.abs(p1-p2)+ppma),2)
+
+form.p1p2p.value = format(100*NormalP(p1p2/(ppma/z_alpha)-z_alpha),2)
+
+form.p1p2pr.value= format((2*(1- NormalP((p1p2/(ppma/z_alpha))))),4)
+if (form.p1p2pr.value == 0) {form.p1p2pr.value = "<0.0001"}
+
+if (form.meth2.value=="Binomiale" || form.meth1.value=="Binomiale" || form.meth2.value=="Aucune" || form.meth1.value=="Aucune") {
+   form.p1p2q.value="Non-normale" 
+   form.p1p2p.value= format((100*NormalP((p1p2/(ppma/z_alpha))-z_alpha)),2)
+   //form.p1p2p.value="Non normale"
+   } else {
+   form.p1p2q.value="Normale"
+   form.p1p2p.value= format((100*NormalP((p1p2/(ppma/z_alpha))-z_alpha)),2) }
+
+// autres calculs cas - témoin
+var aa = parseFloat(num1)
+var cc = parseFloat(num2)
+var bb = parseFloat(num11)
+var dd = parseFloat(num22)
+
+form.dd8.value=format((aa/(aa+cc)),3)
+form.dd9.value=format((dd/(bb+dd)),3)
+form.dd10.value=format((aa/(aa+cc))/(bb/(bb+dd)),3)
+form.dd11.value=format((cc/(aa+cc))/(dd/(bb+dd)),3)
+form.dd12.value=format(bb/(bb+dd),3)
+form.dd13.value=format(cc/(aa+cc),3)
+form.dd14.value=format((aa+cc)/(aa+bb+cc+dd),3)
+form.dd15.value=format(aa/(aa+bb),3)
+form.dd16.value=format(bb/(aa+bb),3)
+form.dd17.value=format(dd/(dd+cc),3)
+form.dd18.value=format(cc/(cc+dd),3)
+form.dd19.value=format((aa+bb)/(aa+bb+cc+dd),3)
+form.dd20.value=format((cc+dd)/(aa+bb+cc+dd),3)
+form.dd21.value=format((aa+dd)/(aa+bb+cc+dd),3)
+form.dd22.value=format((aa/(aa+bb))-(cc/(cc+dd)),3)
+var r = Math.abs((num1*num22-num11*num2)/(Math.sqrt((num1+num2)*(num1+num11)*(num11+num22)*(num2+num22))))
+form.phi.value=format(r,3)
+form.r2.value=format((r*r),3)
+form.yule.value=format(Math.abs((num1*num22-num11*num2)/(num1*num22+num2*num11)),3)
+form.logrc.value=format((Math.log(num1)/Math.log(10)+Math.log(num22)/Math.log(10)-Math.log(num11)/Math.log(10)-Math.log(num2)/Math.log(10)),3)
+var rc = (num1*num22)/(num2*num11)
+form.probrc.value= format(rc/(1+rc),2)
+
+// Calculs de la probabilité et de la puissance statistique:  
+// voir Fleiss, J.L. 1981. Statistical methods for rates and proportions. John Wiley & Sons, 321 pp.
+var totalnum = num1+num11+num2+num22
+var anum1 = (num1+num2)*denom1 /totalnum
+var anum2 = (num1+num2)*denom2 /totalnum
+var anum11 = (num11+num22) * denom1 / totalnum
+var anum22 = (num11+num22) * denom2 / totalnum
+
+form.rrpr.value="--"
+
+var up = custLog(Fact(denom1),10)+custLog(Fact(denom2),10)+custLog(Fact(num1+num2),10)+custLog(Fact(num11+num22),10)
+var down = custLog(Fact(num1),10)+custLog(Fact(num2),10)+custLog(Fact(num11),10)+custLog(Fact(num22),10)+custLog(Fact(totalnum),10)
+
+var crit = ( (Math.pow((num1-anum1),2)/anum1) + (Math.pow((num11-anum11),2)/anum11) + (Math.pow((num2-anum2),2)/anum2) + (Math.pow((num22-anum22),2)/anum22) );
+
+var critY = ( (Math.pow((Math.abs(num1-anum1)-0.5),2)/anum1) + (Math.pow((Math.abs(num11-anum11)-0.5),2)/anum11) + (Math.pow((Math.abs(num2-anum2)-0.5),2)/anum2) + (Math.pow((Math.abs(num22-anum22)-0.5),2)/anum22) );
+
+if (anum1<=5 || anum11<=5 ||anum2<=5 ||anum22<=5) {
+form.rrq.value="Fisher exact" 
+form.rrpr.value= format((Math.pow(10,(up - down))),4)
+} else {
+  	   form.rrq.value="Khi-carré";
+	   	   form.rrpr.value=format(ChiSq(crit,1),4);
+	   if (form.rrpr.value == 0) {form.rrpr.value = "<0.0001"}
+	   if (crit > 32) {form.rrpr.value = "<0.0001"}
+	   }
+form.khi.value=format(crit,5)
+form.pKhi.value=format(ChiSq(crit,1),4)
+if (form.pKhi.value == 0) {form.pKhi.value = "<0.0001"}
+if (crit > 32) {form.pKhi.value = "<0.0001"}
+form.Exact.value=format((Fact(denom1)*Fact(denom2)*Fact(num1+num2)*Fact(num11+num22))/(Fact(denom1+denom2)*Fact(num1)*Fact(num2)*Fact(num11)*Fact(num22)),4)
+if (form.Exact.value == 0) {form.Exact.value = "<0.0001"}
+form.YKhi.value=format(ChiSq(critY,1),4)
+if (form.YKhi.value == 0) {form.YKhi.value = "<0.0001"}
+
+} else {
+form.rr.value = "--"
+form.rrici.value="--"
+form.rrics.value="--"
+form.od.value="--"
+form.odici.value="--"
+form.odics.value="--"
+form.p1p2.value="--"
+form.p1p2ici.value="--"
+form.p1p2ics.value="--"
+form.dd8.value="--"
+form.dd9.value="--"
+form.dd10.value="--"
+form.dd11.value="--"
+form.dd12.value="--"
+form.dd13.value="--"
+form.dd14.value="--"
+form.dd15.value="--"
+form.dd16.value="--"
+form.dd17.value="--"
+form.dd18.value="--"
+form.dd19.value="--"
+form.dd20.value="--"
+form.dd21.value="--"
+form.dd22.value="--"
+form.rrpr.value="--"
+form.rrq.value="--"
+form.p1p2pr.value="--"
+form.p1p2q.value="--"
+form.p1p2p.value="--"
+form.khi.value="--"
+form.pKhi.value="--"
+form.Exact.value="--"
+form.YKhi.value="--"
+form.phi.value="--"
+form.r2.value="--"
+form.yule.value="--"
+form.logrc.value="--"
+form.probrc.value="--"
+}
+// Calcul des marges d'erreurs de l'échantillon
+if (form.poptot1.value>0 && denom1>0 && form.poptot1.value>denom1 && p1>0) {
+var propd = z_alpha*z_alpha*0.5*(1-0.5)
+var mepp = Math.sqrt( ((form.poptot1.value)-denom1)*propd / (denom1*((form.poptot1.value)-1)) )
+form.mep1.value = format(100*mepp,2)
+} else {
+form.mep1.value = "--"
+}
+if (form.poptot2.value>0 && denom2>0 && form.poptot2.value>denom2 && p2>0) {
+var propd2 = z_alpha*z_alpha*0.5*(1-0.5)
+var mepp2 = Math.sqrt( ((form.poptot2.value)-denom2)*propd2 / (denom2*((form.poptot2.value)-1)) )
+form.mep2.value = format(100*mepp2,2)
+} else {
+form.mep2.value = "--"
+}
+
+// Fin de la fonction calculate
+}
+
+//Fonction t de Student
+function tstudent()
+{
+var m1 = parseFloat(form.m1.value)
+var ec1 = parseFloat(form.ec1.value)
+var n1 = parseFloat(form.n1.value)
+var m2 = parseFloat(form.m2.value)
+var ec2 = parseFloat(form.ec2.value)
+var n2 = parseFloat(form.n2.value)
+
+if (ec1>0 && n1>1 && ec2>0 && n2>1) {
+
+var f = Math.pow(ec1,2)/Math.pow(ec2,2)
+form.f.value = format(f,3)
+var af = (1 - (FishF(f,(n1-1),(n2-1)) ))
+
+if (af>0.05) {
+   			 form.vari.value="Égales"
+			 var degre = (n1+n2-2)
+			 form.degre.value = degre
+			 var cri = Math.abs( (m1-m2) / Math.sqrt( (1/n1 + 1/n2)*(Math.pow(ec1,2)*(n1-1) + Math.pow(ec2,2)*(n2-1))/degre ))
+			 var talpha = StudT(cri,degre)
+			 form.talpha.value = format(talpha,4)
+			 if (talpha<=0.025) {form.tsign.value="Oui"} else {form.tsign.value="Non"}
+			 if (form.talpha.value<0.0001) {form.talpha.value="<0.0001"}
+} else {
+   			 form.vari.value="Inégales"
+			 var degre = Math.round( (Math.pow(ec1,2)/n1 + Math.pow(ec2,2)/n2)/( Math.pow(Math.pow(ec1,2)/n1,2)/(n1-1) + Math.pow(Math.pow(ec2,2)/n2,2)/(n2-1) )   )
+			 form.degre.value = degre
+			 var cri = Math.abs( (m1-m2) / Math.sqrt( Math.pow(ec1,2)/(n1) + Math.pow(ec2,2)/(n2) ))
+			 var talpha = StudT(cri,degre)
+			 form.talpha.value = format(talpha,4)
+			 if (talpha<=0.025) {form.tsign.value="Oui"} else {form.tsign.value="Non"}
+			 if (form.talpha.value<0.0001) {form.talpha.value="<0.0001"}
+}
+var sdpooled = Math.sqrt(((form.ec1.value*form.ec1.value)+(form.ec2.value*form.ec2.value))/2)
+form.d.value = format(Math.abs((form.m1.value - form.m2.value))/sdpooled,4)
+form.r.value = format(form.d.value/Math.sqrt((form.d.value*form.d.value)+4),4)
+form.z1.value = format(((m1-m2)/ec1),4)
+form.z2.value = format(((m2-m1)/ec2),4)
+form.z3.value = format((m1-m2),4)
+} else {
+form.f.value ="--"
+form.vari.value ="--"
+form.tsign.value="--"
+form.degre.value="--"
+form.talpha.value="--"
+form.d.value="--"
+form.r.value="--"
+form.z1.value="--"
+form.z2.value="--"
+form.z3.value="--"
+}
+// fin de tstudent
+}
+
+//Fonction Bayes
+function bayes()
+{
+
+}
+
+//Fonction Score Z
+function zscore()
+{
+
+}
+
+//Fonction Analyse Combinatoire
+function combinatoire()
+{
+
+}
+		   
+// Fonction RANDOM
+function aleatoire() 
+{
+var nb=Math.random()
+}
+
+
+</SCRIPT>
+
+<P style="LINE-HEIGHT: 100%">(Votre fureteur doit pouvoir 
+accepter le JavaScript.&nbsp; Inscrire les données décimales avec des POINTS et 
+non des virgules.) </P>
+<P style="LINE-HEIGHT: 100%"><font color=#ffffff><span style="BACKGROUND-COLOR: #000000">ENTREZ LES PROPORTIONS DU NUMÉRATEUR ET DU DÉNOMINATEUR 
+(ENTIER SEULEMENT), OU DIRECTEMENT LA PROPORTION ET UN DES DEUX CHIFFRES. 
+N'ENTREZ PAS LES 3 CHIFFRES EN MÊME TEMPS.</SPAN></FONT> </P>
+<table height=82 width=935 border=1>
+  <tr>
+    <td style="HEIGHT: 79px" width=17>
+      <p style="LINE-HEIGHT: 100%">&nbsp;</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=78>
+      <p style="LINE-HEIGHT: 100%"><strong 
+      >Numérateur</STRONG> (Sous-groupe de 
+    l'échantillon)</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=84>
+      <p style="LINE-HEIGHT: 100%"><strong 
+      >Dénominateur</STRONG> (Total de l'échantillon)</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=88>
+      <p style="LINE-HEIGHT: 100%; TEXT-ALIGN: center" 
+      ><strong>Proportion 
+      (%)</STRONG></P></TD>
+    <td style="HEIGHT: 79px" align=middle width=62>
+      <p style="LINE-HEIGHT: 100%">&nbsp;% Marge 
+      d'erreur</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=57>
+      <p style="LINE-HEIGHT: 100%">% I.C. inf.</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=63>
+      <p style="LINE-HEIGHT: 100%">% I.C. sup.</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=61>
+      <p style="LINE-HEIGHT: 100%">% CV</P></TD>
+    <td style="WIDTH: 101px; HEIGHT: 79px" align=middle>
+      <p style="LINE-HEIGHT: 100%">Qualité</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=35>
+      <p style="LINE-HEIGHT: 100%">Cote</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=64>
+      <p style="LINE-HEIGHT: 100%">Méthode 
+    statistique</P></TD>
+    <td style="HEIGHT: 79px" align=middle width=64>
+      <p style="LINE-HEIGHT: 100%">Puissance (%) (Test si 
+      P&lt;&gt;0)</P></TD></TR>
+  <tr>
+    <td width=17 height=23>
+      <p style="LINE-HEIGHT: 100%">P1</P></TD>
+    <td width=78 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><!--webbot bot="Validation" 
+              s-validation-constraint="Greater than" s-validation-value="0" --><INPUT 
+      tabIndex=1 size=10 name=num1> </P></TD>
+    <td width=84 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><!--webbot bot="Validation" 
+              s-validation-constraint="Greater than" s-validation-value="0" --><INPUT 
+      tabIndex=2 size=10 name=denom1> </P></TD>
+    <td width=88 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><!--webbot bot="Validation" 
+              s-validation-constraint="Greater than" 
+              s-validation-constraint="Less than or equal to" s-validation-value="0" 
+              s-validation-value="1" --><INPUT tabIndex=3 size=10 name=p1 
+      > </P></TD>
+    <td width=62 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=ma1 
+      unselectable="on"> </P></TD>
+    <td width=57 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=ici1 
+      unselectable="on"> </P></TD>
+    <td width=63 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=ics1 
+      unselectable="on"> </P></TD>
+    <td width=61 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=6 name=cv1 
+       unselectable="on"> </P></TD>
+    <td style="WIDTH: 101px" height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><font 
+      size=1><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=13 name=q1 
+       unselectable="on"> </FONT></P></TD>
+    <td width=35 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=3 name=c1 
+       unselectable="on"> </P></TD>
+    <td width=64 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=8 name=meth1 
+       unselectable="on"> </P></TD>
+    <td width=53 height=23>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=10 name=power1 
+       unselectable="on"> </P></TD></TR>
+  <tr>
+    <td width=17 height=22>
+      <p style="LINE-HEIGHT: 100%">P2</P></TD>
+    <td width=78 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><!--webbot bot="Validation" 
+              s-validation-constraint="Greater than" s-validation-value="0" --><INPUT 
+      tabIndex=4 size=10 name=num2> </P></TD>
+    <td width=84 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><!--webbot bot="Validation" 
+              s-validation-constraint="Greater than" s-validation-value="0" --><INPUT 
+      tabIndex=5 size=10 name=denom2> </P></TD>
+    <td width=88 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><!--webbot bot="Validation" 
+              s-validation-constraint="Greater than" 
+              s-validation-constraint="Less than or equal to" s-validation-value="0" 
+              s-validation-value="1" --><INPUT tabIndex=6 size=10 name=p2 
+      > </P></TD>
+    <td width=62 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=ma2 
+      unselectable="on"> </P></TD>
+    <td width=57 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=ici2 
+      unselectable="on"> </P></TD>
+    <td width=63 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=ics2 
+      unselectable="on"> </P></TD>
+    <td width=61 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=6 name=cv2 
+       unselectable="on"> </P></TD>
+    <td style="WIDTH: 101px" height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><font 
+      size=1><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=13 name=q2 
+       unselectable="on"> </FONT></P></TD>
+    <td style="FONT-SIZE: 12pt" width=35 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=3 name=c2 
+       unselectable="on"> </P></TD>
+    <td style="FONT-SIZE: 12pt" width=64 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=8 name=meth2 
+       unselectable="on"> </P></TD>
+    <td style="FONT-SIZE: 12pt" width=53 height=22>
+      <p style="LINE-HEIGHT: 100%" align=center><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=10 name=power2 
+       unselectable="on"> </P></TD></TR></TABLE>
+<p style="LINE-HEIGHT: 100%"></P>Alpha (par défaut est 
+0.05):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <!--webbot b-value-required="TRUE" 
+    bot="Validation" s-display-name="alpha" --><select style="FONT-SIZE: 12pt" 
+size=1 name=alpha> <option value=0.05 selected 
+  >0.05</OPTION> <option value=0.025 
+  >0.025</OPTION> <option value=0.01 
+  >0.01</OPTION> <option value=0.005 
+  >0.005</OPTION> <option value=0.1 
+  >0.1</OPTION> <option value=0.2 
+  >0.2</OPTION></SELECT>&nbsp;&nbsp;&nbsp; <font color=#ff3300><strong>La probabilité couverte par l'intervalle de confiance équivaut à un moins alpha.</STRONG></FONT> 
+<p style="LINE-HEIGHT: 100%"><INPUT style="FONT-SIZE: 12pt" onclick=calculate() type=button size=20 value="           Calculer         ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input id=Button2 style="FONT-SIZE: 12pt" onclick=zeroed() type=button value="Remettre vide"> 
+<br><br>
+<table style="FONT-SIZE: 12pt" height=312 width=600 border=1>
+  <tr>
+    <td width=590 colSpan=7 height=19><strong 
+      >Rapport de cote ("Odds ratio") et Risque relatif. 
+      ("Risk ratio")&nbsp;&nbsp;Utiliser le rapport de cote pour les études cas/témoin et le risque relatif&nbsp;pour les études populationnelles.</STRONG></TD></TR>
+  <tr>
+    <td width=163 height=38>
+      <p style="LINE-HEIGHT: 100%">&nbsp;</P></TD>
+    <td align=middle width=57 height=38>
+      <p style="LINE-HEIGHT: 100%">Valeur</P></TD>
+    <td align=middle width=55 height=38>
+      <p style="LINE-HEIGHT: 100%">I.C. inf.</P></TD>
+    <td align=middle width=57 height=38>
+      <p style="LINE-HEIGHT: 100%">I.C. sup.</P></TD>
+    <td align=middle width=76 height=38>Probabilité</TD>
+    <td align=middle width=85 height=38>Méthode 
+      statistique</TD>
+    <td style="TEXT-ALIGN: center" align=middle width=61 height=38 
+    >Puissance (%)</TD></TR>
+  <tr>
+    <td width=163 height=23>
+      <p style="LINE-HEIGHT: 100%">Risque Relatif&nbsp; 
+      (RR)</P></TD>
+    <td width=57 height=23>
+      <p style="LINE-HEIGHT: 100%"><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=rr 
+      unselectable="on"></P></TD>
+    <td width=55 height=23>
+      <p style="LINE-HEIGHT: 100%"><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=rrici 
+      unselectable="on"></P></TD>
+    <td width=57 height=23>
+      <p style="LINE-HEIGHT: 100%"><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=rrics 
+      unselectable="on"></P></TD>
+    <td width=76 height=66 rowSpan=2><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=rrpr 
+      unselectable="on"> </TD>
+    <td width=85 height=66 rowSpan=2><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=rrq 
+      unselectable="on"> </TD>
+    <td width=61 height=118 rowSpan=3><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=6 name=p1p2p 
+       unselectable="on"> </TD></TR>
+  <tr>
+    <td width=163 height=37>
+      <p style="LINE-HEIGHT: 100%">Rapport de Cote (RC ou 
+      OR)</P></TD>
+    <td width=57 height=37>
+      <p style="LINE-HEIGHT: 100%"><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=od 
+      unselectable="on"></P></TD>
+    <td width=55 height=37>
+      <p style="LINE-HEIGHT: 100%"><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=odici 
+      unselectable="on"></P></TD>
+    <td width=57 height=37>
+      <p style="LINE-HEIGHT: 100%"><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=odics 
+      unselectable="on"></P></TD></TR>
+  <tr>
+    <td width=163 height=46>% Différence P1-P2</TD>
+    <td width=57 height=46><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=p1p2 
+      unselectable="on"></TD>
+    <td width=55 height=46><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=p1p2ici 
+      unselectable="on"></TD>
+    <td width=57 height=46><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=p1p2ics 
+      unselectable="on"></TD>
+    <td width=76 height=46><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=6 name=p1p2pr 
+      unselectable="on"> </TD>
+    <td width=85 height=46><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=p1p2q 
+      unselectable="on"> </TD></TR>
+  <tr>
+    <td width=163 height=27>Khi-carré</td>
+    <td width=181 colSpan=3 height=27>
+    <INPUT style="BACKGROUND-COLOR: #ffff00" size=7 name=khi 
+      unselectable="on">&nbsp;<font size=1>Probabilité 
+      <INPUT style="BACKGROUND-COLOR: #ffff00" size=5 name=pKhi 
+      unselectable="on"></TD></TR>
+  <tr>
+    <td width=163 height=27>Khi-carré <font size=1>Correction de Yates</td>
+    <td width=181 colspan=3 height=27><font size=1>Probabilité 
+    <INPUT style="BACKGROUND-COLOR: #ffff00" size=4 name=YKhi 
+      unselectable="on">&nbsp;</TD></TR>
+  <tr>
+    <td width=163 height=27>Fisher Exact test</td>
+    <td width=181 colspan=3 height=27><font size=1>Probabilité 
+    <INPUT style="BACKGROUND-COLOR: #ffff00" size=4 name=Exact 
+      unselectable="on">&nbsp;</TD></TR>
+  <tr>
+    <td width=163 height=27>Coefficient corrélation Phi 
+      (ou "r") <font size=1>valeur absolue</FONT></TD>
+    <td width=181 colSpan=3 height=27><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=7 name=phi 
+      unselectable="on">&nbsp; r<sup>2</SUP>  &nbsp;&nbsp; 
+      <INPUT style="BACKGROUND-COLOR: #ffff00" size=7 name=r2 
+       unselectable="on"></TD></TR>
+  <tr>
+    <td width=163 height=21>Yules' Q <font size=1 
+      >valeur absolue</FONT></TD>
+    <td width=181 colSpan=3 height=21><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=7 name=yule 
+      unselectable="on"></TD></TR>
+  <tr>
+    <td width=163 height=26>Log RC (logOR)</TD>
+    <td width=181 colSpan=3 height=26><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=7 name=logrc 
+      unselectable="on"></TD></TR>
+  <tr>
+    <td width=163 height=21>
+      <p style="LINE-HEIGHT: 100%">Probabilité RC (0 à 
+      1)</P></TD>
+    <td width=181 colSpan=3 height=21>
+      <p style="LINE-HEIGHT: 100%"><INPUT 
+      style="BACKGROUND-COLOR: #ffff00" size=7 name=probrc 
+      unselectable="on"></P></TD></TR></TABLE>
+<p>
+<table id=TABLE1 style="FONT-SIZE: 12pt" width=600 border=1>
+  <tr>
+    <td style="HEIGHT: 22px" width=590 colSpan=3 
+    unselectable="on"><strong>Comparaison avec une 
+      population de référence</STRONG></TD></TR>
+  <tr>
+    <td style="HEIGHT: 40px" width=130 
+      unselectable="on">Comparer la proportion à une autre dans la population 
+      globale</TD>
+    <td style="HEIGHT: 40px" width=105>Inscrire un estimé 
+      de la population totale</TD>
+    <td style="HEIGHT: 40px" width=343 colSpan=1 rowSpan=1 
+      >Marge d'erreur (%)de l'étude(en tenant en compte 
+      d'une probabilité normale&nbsp; d'optenir 19 fois sur 20 une fréquence de 
+      réponse&nbsp;de 50% à une question, soit la fréquence maximale) </TD></TR>
+  <tr>
+    <td style="HEIGHT: 1px" width=130 
+    unselectable="on">P1</TD>
+    <td style="HEIGHT: 1px" width=105><INPUT tabIndex=7 
+      size=12 name=poptot1></TD>
+    <td style="HEIGHT: 1px" width=343><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=9 name=mep1 
+       unselectable="on"></TD></TR>
+  <tr>
+    <td style="HEIGHT: 9px" width=130 
+    unselectable="on">P2</TD>
+    <td style="HEIGHT: 9px" width=105><INPUT tabIndex=8 
+      size=12 name=poptot2></TD>
+    <td style="HEIGHT: 9px" width=343><INPUT 
+      style="BACKGROUND-COLOR: #ffff00; TEXT-ALIGN: center" size=9 name=mep2 
+       unselectable="on"></TD></TR></TABLE></P>
+<div id=DIV2 ms_positioning="LinearLayout">
+<table height=118 cellspacing=0 cellpadding=0 width=943 border=0 
+ms_1d_layout="TRUE">
+  <tr>
+    <td>
+      <p><strong 
+      >Notes:</STRONG>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+      </P>
+      <blockquote dir=ltr>
+        <p align=justify>Les intervalles de confiances 
+        (I.C.) sont calculés en fonction de la probabilité demandée (un alpha de 
+        0.05 équivaut à donner un I.C. de 95%)&nbsp;et de la méthode recommandée 
+        selon les standards de Statistique Canada; soit la méthode d'estimation 
+        avec la courbe normale&nbsp;ou selon l'estimation binomiale. La qualité 
+        de l'estimation ainsi que la cote&nbsp;de la proportion (P1 ou P2) suit 
+        les normes de Statistique Canada selon le coefficient de&nbsp;variation 
+        (%CV); lorsque la qualité est marginale, il faut interpréter les 
+        résultats avec prudence. Un CV trop élevé peut aussi donner des 
+        résultats&nbsp;qui ne sont pas 
+publiables.</P></BLOCKQUOTE></td></tr></table></DIV>
+<p style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%">&nbsp;</P>
+<p style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%">&nbsp;</P>
+<p style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%"></P>
+<div id=DIV1 align=left ms_positioning="LinearLayout">
+<table height=209 cellspacing=0 cellpadding=0 width=940 border=0 
+ms_1d_layout="TRUE">
+  <tr>
+    <td>
+      <p><strong>Références:</STRONG> 
+      &nbsp; </P>
+      <blockquote dir=ltr>
+        <blockquote dir=ltr>
+          <p>Fichier Excel de l'Institut de la Statistique 
+          du Québec,&nbsp; et&nbsp; </P>
+          <p>Fleiss, J.L. 1981. Statistical methods for 
+          rates and proportions. John Wiley &amp; Sons, 321 pp.</P>
+          <p><span lang=EN-CA><a 
+          name=OLE_LINK1></A><a 
+          href="http://www.statcan.ca/"><span 
+          ><span lang=EN-CA 
+          >http://www.statcan.ca/</SPAN></SPAN><span 
+          ></SPAN></A><span><span 
+          lang=EN-CA> </SPAN></SPAN></SPAN></P>
+          <p><span lang=EN-CA><a 
+          href="http://statpages.org/pdfs.html"><font 
+          face="Times New Roman" 
+          >http://statpages.org/pdfs.html</FONT></A>&nbsp;&nbsp;&nbsp; 
+          et&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </SPAN><u 
+          ><span><font 
+          face="Times New Roman"><a 
+          href="http://statpages.net/confint.html" 
+          >http://statpages.net/confint.html</A></FONT></SPAN></U></P>
+          <p><span lang=EN-CA><a 
+          href="http://home.ubalt.edu/ntsbarsh/Business-stat/opre504.htm#rFisherF" 
+          >http://home.ubalt.edu/ntsbarsh/Business-stat/opre504.htm#rFisherF</A></SPAN></P>
+          <p><span lang=EN-CA><span 
+          ><a 
+          href="http://stat.ubc.ca/~rollin/stats/ssize/b2.html" 
+          >http://stat.ubc.ca/~rollin/stats/ssize/b2.html</A> 
+          </SPAN></SPAN></P>
+          <p><span lang=EN-CA><span 
+          ><span lang=FR><a 
+          href="http://stat.ubc.ca/~rollin/stats/ssize/caco.html" 
+          >http://stat.ubc.ca/~rollin/stats/ssize/caco.html</A> 
+          </SPAN></SPAN></SPAN></P></BLOCKQUOTE></BLOCKQUOTE></td></tr></table></DIV>
+<p style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%"></P>
+<p style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%"></P>
+<p style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%"></P>
+<HR style="FONT-SIZE: 12pt; FONT-FAMILY: Times New Roman" SIZE=2>
+
+<p style="LINE-HEIGHT: 100%"><b><font 
+size=4>Calculs intéressants:</FONT></B></P>
+<p style="LINE-HEIGHT: 100%"><b><span 
+style="BACKGROUND-COLOR: #000000"><font color=#ffffff>Dans le cas où P1 et P2 représentent les proportions d'une 
+étude cas/témoin et où P1 représente les cas (facteur de risque positif) et P2 
+les témoins (facteur de risque négatif), les statistiques suivantes peuvent 
+s'avérer utiles:&nbsp; (attention: le dénominateur représente toujours le total 
+des cas avec et sans la maladie.)</FONT></SPAN></B></P>
+<div align=left>
+<table style="FONT-FAMILY: Times New Roman" height=31 width=715 border=1>
+  <tr>
+    <td width=126 height=8></TD>
+    <td align=middle width=189 height=8>
+      <p 
+      style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%" 
+      ><font color=#ff00ff>Cas où 
+      apparaît la maladie</FONT></P>
+      <p 
+      style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%" 
+      ><font color=#ff00ff 
+      >(Cas)</FONT></P></TD>
+    <td align=middle width=203 height=8>
+      <p 
+      style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%" 
+      ><font color=#ff00ff>Cas où 
+      n'apparaît pas la maladie</FONT></P>
+      <p 
+      style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%" 
+      ><font color=#ff00ff 
+      >(Témoin)</FONT></P></TD>
+    <td align=middle width=169 height=8>
+      <p 
+      style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%" 
+      ><font color=#ff00ff 
+      >Dénominateur&nbsp;</FONT></P>
+      <p 
+      style="MARGIN: 0px; WORD-SPACING: 0px; TEXT-INDENT: 0px; LINE-HEIGHT: 100%" 
+      ><font color=#ff00ff 
+      >(population)</FONT></P></TD></TR>
+  <tr>
+    <td width=126 height=2><font color=#ff00ff 
+      >Test positif</FONT></TD>
+    <td align=middle width=189 height=2><b 
+      >a</B></TD>
+    <td align=middle width=203 height=2><b 
+      >b</B></TD>
+    <td align=middle width=169 height=2><b 
+      >a + b</B></TD></TR>
+  <tr>
+    <td width=126 height=8><font color=#ff00ff 
+      >Test négatif</FONT></TD>
+    <td align=middle width=189 height=8><b 
+      >c</B></TD>
+    <td align=middle width=203 height=8><b 
+      >d</B></TD>
+    <td align=middle width=169 height=8><b 
+      >c + d</B></TD></TR></TABLE></DIV>
+<p style="LINE-HEIGHT: 100%">&nbsp;</P>
+<table style="FONT-FAMILY: Times New Roman" width="100%" border=1>
+  <tr>
+    <td align=middle width="20%"><font color=#ff00ff 
+      ><b>Terme</B></FONT></TD>
+    <td align=middle width="20%"><font color=#ff00ff 
+      ><b>Terme anglais</B></FONT></TD>
+    <td align=middle width="15%"><font color=#ff00ff 
+      ><b>Description</B></FONT></TD>
+    <td align=middle width="11%"><font color=#ff00ff 
+      ><b>Valeur</B></FONT></TD>
+    <td align=middle width="34%"><font color=#ff00ff 
+      ><b>Commentaire</B></FONT></TD></TR>
+  <tr>
+    <td width="20%">Sensibilité</TD>
+    <td width="20%">Sensitivity</TD>
+    <td width="15%">a/(a+c)</TD>
+    <td width="11%"><INPUT id=Text1 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd8 
+      unselectable="on"> </TD>
+    <td width="34%">Ratio des cas de P1</TD></TR>
+  <tr>
+    <td width="20%">Spécificité</TD>
+    <td width="20%">Specificity</TD>
+    <td width="15%">d/(b+d)</TD>
+    <td width="11%"><INPUT id=Text2 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd9 
+      unselectable="on"> </TD>
+    <td width="34%">Ratio des témoins de P2</TD></TR>
+  <tr>
+    <td width="20%">Rapport de vraisemblance +</TD>
+    <td width="20%">Likelihood Ratio +</TD>
+    <td width="15%">(a/(a+c))/(b/(b+d))</TD>
+    <td width="11%"><INPUT id=Text3 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd10 
+      unselectable="on"> </TD>
+    <td width="34%">sensibilité / (1 - spécificité)</TD></TR>
+  <tr>
+    <td width="20%">Rapport de vraisemblance -</TD>
+    <td width="20%">Likelihood Ratio -</TD>
+    <td width="15%">(c/(a+c))/(d/(b+d))</TD>
+    <td width="11%"><INPUT id=Text4 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd11 
+      unselectable="on"> </TD>
+    <td width="34%">(1 - sensibilité) / spécificité</TD></TR>
+  <tr>
+    <td width="20%">Faux positif</TD>
+    <td width="20%">False positive rate</TD>
+    <td width="15%">b/(b+d)</TD>
+    <td width="11%"><INPUT id=Text5 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd12 
+      unselectable="on"> </TD>
+    <td width="34%">1 - spécificité</TD></TR>
+  <tr>
+    <td width="20%">Faux négatif</TD>
+    <td width="20%">False negative rate</TD>
+    <td width="15%">c/(a+c)</TD>
+    <td width="11%"><INPUT id=Text6 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd13 
+      unselectable="on"> </TD>
+    <td width="34%">1 - sensibilité</TD></TR>
+  <tr>
+    <td width="20%">Probabilité d'avoir un cas</TD>
+    <td width="20%">Probability of disease</TD>
+    <td width="15%">(a+c)/(a+b+c+d)</TD>
+    <td width="11%"><INPUT id=Text7 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd14 
+      unselectable="on"> </TD>
+    <td width="34%">&nbsp;</TD></TR>
+  <tr>
+    <td width="20%">Coefficient de prévision positif</TD>
+    <td width="20%">Positive Predictive value (PPV)</TD>
+    <td width="15%">a/(a+b)</TD>
+    <td width="11%"><INPUT id=Text8 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd15 
+      unselectable="on"> </TD>
+    <td width="34%">Probabilité conditionelle selon le theorème de Bayes</TD></TR>
+  <tr>
+    <td width="20%">Probabilité d'avoir un faux 
+positif</TD>
+    <td width="20%">Positive test wrong</TD>
+    <td width="15%">b/(a+b)</TD>
+    <td width="11%"><INPUT id=Text9 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd16 
+      unselectable="on"> </TD>
+    <td width="34%">&nbsp;</TD></TR>
+  <tr>
+    <td width="20%">Coefficient de prévision négatif</TD>
+    <td width="20%">Negative Predictive value</TD>
+    <td width="15%">d/(c+d)</TD>
+    <td width="11%"><INPUT id=Text10 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd17 
+      unselectable="on"> </TD>
+    <td width="34%">&nbsp;</TD></TR>
+  <tr>
+    <td width="20%">Probabilité d'avoir un faux 
+négatif</TD>
+    <td width="20%">Negative test wrong</TD>
+    <td width="15%">c/(c+d)</TD>
+    <td width="11%"><INPUT id=Text11 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd18 
+      unselectable="on"> </TD>
+    <td width="34%">&nbsp;</TD></TR>
+  <tr>
+    <td width="20%">Probabilité d'avoir un cas de 
+    maladie</TD>
+    <td width="20%">Test positive</TD>
+    <td width="15%">(a+b)/(a+b+c+d)</TD>
+    <td width="11%"><INPUT id=Text12 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd19 
+      unselectable="on"> </TD>
+    <td width="34%">&nbsp;</TD></TR>
+  <tr>
+    <td width="20%">Probabilité d'avoir un individu 
+    sain</TD>
+    <td width="20%">Test negative</TD>
+    <td width="15%">(c+d)/(a+b+c+d)</TD>
+    <td width="11%"><INPUT id=Text13 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd20 
+      unselectable="on"> </TD>
+    <td width="34%">&nbsp;</TD></TR>
+  <tr>
+    <td width="20%">Validité interne</TD>
+    <td width="20%">Overall accuracy</TD>
+    <td width="15%">(a+d)/(a+b+c+d)</TD>
+    <td width="11%"><INPUT id=Text14 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd21 
+      unselectable="on"> </TD>
+    <td width="34%">&nbsp;</TD></TR>
+  <tr>
+    <td width="20%">Risque attribuable</TD>
+    <td width="20%">Attributable Risk</TD>
+    <td width="15%">(a/(a+b))-(c/(c+d))</TD>
+    <td width="11%"><INPUT id=Text15 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=dd22 
+      unselectable="on"> </TD>
+    <td width="34%">Le risque avec P1 - le risque de 
+  P2</TD></TR></TABLE>&nbsp; 
+<p><strong>Référence:</STRONG>&nbsp;<font size=2>&nbsp;&nbsp; <span 
+style="FONT-SIZE: 11pt; COLOR: maroon; FONT-FAMILY: 'Times New Roman'; mso-fareast-font-family: 'Times New Roman'; mso-ansi-language: FR-CA; mso-fareast-language: FR; mso-bidi-language: AR-SA; mso-bidi-font-size: 10.0pt"><a 
+href="http://www.healthstrategy.com/epiperl/EpiMaxSelector.htm">www.healthstrategy.com/epiperl/EpiMaxSelector.htm</A></SPAN></FONT></P>
+<HR>
+
+<p style="LINE-HEIGHT: 100%" <><font size=4><b>Autres calculs intéressants<span 
+lang=fr-ca>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</SPAN></B></FONT></P>
+<table width="800" border=1 bgcolor="Transparent" frame="border">
+  <tr>
+    <td class="style47"><span lang=fr-ca 
+      ><strong>T de 
+      Student</STRONG></SPAN></TD>
+    <td class="style49"></TD>
+    <td class=style50><font size=3><input class=style31 id=Button3 style="WIDTH: 127px; HEIGHT: 28px" onclick=tstudent() type=button size=25 value="   Calculer    "></FONT></TD>
+    <td></TD>
+    <td><span lang=fr-ca 
+      ><strong>Effet de 
+      grandeur</STRONG></SPAN></TD>
+    <td></TD></TR>
+  <tr>
+    <td class="style47"><span lang=fr-ca 
+      >Moyenne 1</SPAN></TD>
+    <td class="style49">&nbsp;<input id=Text29 size=10 
+      name=m1> </TD>
+    <td class="style50"><span lang=fr-ca 
+      >Rapport de variances</SPAN></TD>
+    <td><span 
+      style="BACKGROUND-COLOR: #ffff00"><input id=Text30 
+      style="BACKGROUND-COLOR: #ffff00" onclick="return Text30_onclick()" 
+      size=11 name=f unselectable="on"> </SPAN></TD>
+    <td><span lang=fr-ca 
+      >Cofficient d de Cohen</SPAN></TD>
+    <td><input id=Text31 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=d 
+      unselectable="on"> </TD></TR>
+  <tr>
+    <td class="style47"><span lang=fr-ca 
+      >Ecart-type 1</SPAN></TD>
+    <td class="style49">&nbsp;<input id=Text18 size=10 
+      name=ec1> </TD>
+    <td class="style50"><span lang=fr-ca 
+      >Variances</SPAN></TD>
+    <td><span 
+      style="BACKGROUND-COLOR: #ffff00"><input id=Text19 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=vari 
+      unselectable="on"></SPAN></TD>
+    <td><span lang=fr-ca 
+      >Coefficient r de l'effet de grandeur ("effect 
+      size")</SPAN></TD>
+    <td>&nbsp;<input id=Text32 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=r 
+      unselectable="on"></TD></TR>
+  <tr>
+    <td class=style48><span lang=fr-ca 
+      >Effectif&nbsp; N1</SPAN></TD>
+    <td class="style46">&nbsp;<input id=Text20 size=10 
+      name=n1> </TD>
+    <td class="style51"><span lang=fr-ca 
+      >Degrés de liberté</SPAN></TD>
+    <td class="style45"><input id=Text22 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=degre 
+      unselectable="on"></TD>
+    <td class="style45"><span lang=fr-ca 
+      >Score Z1 : (moyenne 1 - moyenne 2)/ET 2</SPAN></TD>
+    <td class="style45">&nbsp;<input id=Text33 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=z1 
+      unselectable="on"></TD></TR>
+  <tr>
+    <td class="style47"><span lang=fr-ca 
+      >Moyenne 2</SPAN></TD>
+    <td class="style49">&nbsp;<input id=Text21 size=10 
+      name=m2> </TD>
+    <td class="style50"><span lang=fr-ca 
+      >Probabilité </SPAN></TD>
+    <td><input id=Text24 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=talpha 
+      unselectable="on"></TD>
+    <td><span lang=fr-ca 
+      >Score Z2 : (moyenne 2 - moyenne1)/ET2</SPAN></TD>
+    <td>&nbsp;<input id=Text34 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=z2 
+      unselectable="on"></TD></TR>
+  <tr>
+    <td class="style47"><span lang=fr-ca 
+      >Ecart-type 2</SPAN></TD>
+    <td class="style49">&nbsp;<input id=Text23 size=10 
+      name=ec2> </TD>
+    <td class="style50"><span lang=fr-ca 
+      >Significatif ?</SPAN></TD>
+    <td><input id=Text26 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=tsign 
+      unselectable="on"> &nbsp;</TD>
+    <td><span lang=fr-ca 
+      >Différence entre la moyenne 1 et 2</SPAN></TD>
+    <td>&nbsp;<input id=Text35 
+      style="BACKGROUND-COLOR: #ffff00" size=11 name=z3 
+      unselectable="on"></TD></TR>
+  <tr>
+    <td class="style47"><span lang=fr-ca 
+      >Effectif&nbsp; N2</SPAN></TD>
+    <td class="style49">&nbsp;<input id=Text25 size=10 
+      name=n2> </TD>
+    <td class="style50">&nbsp;</TD>
+    <td>&nbsp;</TD>
+    <td>&nbsp;</TD>
+    <td>&nbsp;</TD></TR></TABLE>
+<p align=left> 
+<h4 align=center>Interprétation du Psy590/es.htm#Cohen"&gt; 
+    <a href="http://web.uccs.edu/lbecker/Psy590/es.htm#Cohen">http://web.uccs.edu/lbecker/Psy590/es.htm#Cohen</A></a> , mai 2009 )</I></H4>
+<center>
+<table height=556 cellSpacing=0 cellPadding=3 width=452 border=1>
+  <tbody>
+  <tr>
+    <td width=433>
+      <table id=TABLE2 height=527 width=433 bgColor=#ffff00 border=1 
+      >
+        <tbody>
+        <tr>
+          <td align=middle width="33%">Standard de 
+          Cohen</TD>
+          <td align=middle width="33%">
+            <p align=center>Grandeur de l'effet "Effect 
+            Size" (d)</P></TD>
+          <td class=style5 align=middle>r</TD>
+          <td class=style1 align=middle>r<sup 
+            >2</SUP></TD>
+          <td align=middle width="34%">
+            <p align=center>Percentile</P></TD>
+          <td align=middle>
+            <p align=center>Pourcentage non chevauchant des 
+            effets</P></TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">2.0</TD>
+          <td class=style5 align=middle>0.707</TD>
+          <td class=style1 align=middle>0.500</TD>
+          <td align=middle width="34%">97.7</TD>
+          <td align=middle>81.1%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.9</TD>
+          <td class=style5 align=middle>0.689</TD>
+          <td class=style1 align=middle>0.474</TD>
+          <td align=middle width="34%">97.1</TD>
+          <td align=middle>79.4%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.8</TD>
+          <td class=style5 align=middle>0.669</TD>
+          <td class=style1 align=middle>0.448</TD>
+          <td align=middle width="34%">96.4</TD>
+          <td align=middle>77.4%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.7</TD>
+          <td class=style5 align=middle>0.648</TD>
+          <td class=style1 align=middle>0.419</TD>
+          <td align=middle width="34%">95.5</TD>
+          <td align=middle>75.4%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.6</TD>
+          <td class=style5 align=middle>0.625</TD>
+          <td class=style1 align=middle>0.390</TD>
+          <td align=middle width="34%">94.5</TD>
+          <td align=middle>73.1%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.5</TD>
+          <td class=style5 align=middle>0.600</TD>
+          <td class=style1 align=middle>0.360</TD>
+          <td align=middle width="34%">93.3</TD>
+          <td align=middle>70.7%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.4</TD>
+          <td class=style5 align=middle>0.573</TD>
+          <td class=style1 align=middle>0.329</TD>
+          <td align=middle width="34%">91.9</TD>
+          <td align=middle>68.1%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.3</TD>
+          <td class=style5 align=middle>0.545</TD>
+          <td class=style1 align=middle>0.297</TD>
+          <td align=middle width="34%">90</TD>
+          <td align=middle>65.3%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.2</TD>
+          <td class=style5 align=middle>0.514</TD>
+          <td class=style1 align=middle>0.265</TD>
+          <td align=middle width="34%">88</TD>
+          <td align=middle>62.2%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.1</TD>
+          <td class=style5 align=middle>0.482</TD>
+          <td class=style1 align=middle>0.232</TD>
+          <td align=middle width="34%">86</TD>
+          <td align=middle>58.9%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">1.0</TD>
+          <td class=style5 align=middle>0.447</TD>
+          <td class=style1 align=middle>0.200</TD>
+          <td align=middle width="34%">84</TD>
+          <td align=middle>55.4%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">0.9</TD>
+          <td class=style5 align=middle>0.410</TD>
+          <td class=style1 align=middle>0.168</TD>
+          <td align=middle width="34%">82</TD>
+          <td align=middle>51.6%</TD></TR>
+        <tr>
+          <td align=middle width="33%">LARGE</TD>
+          <td align=middle width="33%">0.8</TD>
+          <td class=style5 align=middle>0.371</TD>
+          <td class=style1 align=middle>0.138</TD>
+          <td align=middle width="34%">79</TD>
+          <td align=middle>47.4%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">0.7</TD>
+          <td class=style5 align=middle>0.330</TD>
+          <td class=style1 align=middle>0.109</TD>
+          <td align=middle width="34%">76</TD>
+          <td align=middle>43.0%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">0.6</TD>
+          <td class=style5 align=middle>0.287</TD>
+          <td class=style1 align=middle>0.083</TD>
+          <td align=middle width="34%">73</TD>
+          <td align=middle>38.2%</TD></TR>
+        <tr>
+          <td align=middle width="33%">MOYEN</TD>
+          <td align=middle width="33%">0.5</TD>
+          <td class=style5 align=middle>0.243</TD>
+          <td class=style1 align=middle>0.059</TD>
+          <td align=middle width="34%">69</TD>
+          <td align=middle>33.0%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">0.4</TD>
+          <td class=style5 align=middle>0.196</TD>
+          <td class=style1 align=middle>0.038</TD>
+          <td align=middle width="34%">66</TD>
+          <td align=middle>27.4%</TD></TR>
+        <tr>
+          <td align=middle width="33%">&nbsp;</TD>
+          <td align=middle width="33%">0.3</TD>
+          <td class=style5 align=middle>0.148</TD>
+          <td class=style1 align=middle>0.022</TD>
+          <td align=middle width="34%">62</TD>
+          <td align=middle>21.3%</TD></TR>
+        <tr>
+          <td align=middle width="33%">PETIT</TD>
+          <td align=middle width="33%">0.2</TD>
+          <td class=style5 align=middle>0.100</TD>
+          <td class=style1 align=middle>0.010</TD>
+          <td align=middle width="34%">58</TD>
+          <td align=middle>14.7%</TD></TR>
+        <tr>
+          <td align=middle>&nbsp;</TD>
+          <td align=middle>0.1</TD>
+          <td class=style5 align=middle>0.050</TD>
+          <td class=style1 align=middle>0.002</TD>
+          <td align=middle>54</TD>
+          <td align=middle>7.7%</TD></TR>
+        <tr>
+          <td align=middle>&nbsp;</TD>
+          <td align=middle>0.0</TD>
+          <td class=style5 align=middle>0</TD>
+          <td class=style1 align=middle>0</TD>
+          <td align=middle>50</TD>
+          <td align=middle>0%</TD></TR></TBODY></TABLE></TD>
+    <td width=1>
+      <p align=justify></P></TD></TR></TBODY></TABLE></CENTER>
+<p>
+<HR>
+
+<p></p>
+</FORM>
+<ADDRESS><BR>Yves Payette, M.Sc.<BR>Courriel: <A href="mailto:yvespayette@hotmail.com" >yvespayette@hotmail.com</A></ADDRESS>
+<ADDRESS>version 1.3 - 2009<BR></ADDRESS>
+</body></HTML>
